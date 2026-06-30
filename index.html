@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>甜蜜转盘 · 下单抽奖</title>
+  <!-- Font: Noto Sans SC + Icon -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans SC', -apple-system, sans-serif;
+      background: linear-gradient(180deg, #FFF5F0 0%, #FFE8E0 40%, #FFD8CC 100%);
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ===== Container ===== */
+    .page { max-width: 420px; width: 100%; }
+
+    /* ===== Header ===== */
+    .header {
+      text-align: center;
+      padding: 24px 0 8px;
+    }
+    .header .icon {
+      font-size: 48px;
+      color: #E8756E;
+      animation: bounce 2s infinite ease-in-out;
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: #5D2A1E;
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+    .header p {
+      font-size: 14px;
+      color: #A0675A;
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    /* ===== Tagline Banner ===== */
+    .tagline {
+      background: linear-gradient(135deg, #E8756E, #D4605A);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin: 16px 0 20px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(232, 117, 110, 0.3);
+    }
+    .tagline i { font-size: 28px; }
+    .tagline .text { flex: 1; }
+    .tagline .text strong { font-size: 18px; display: block; }
+    .tagline .text span { font-size: 13px; opacity: 0.9; }
+
+    /* ===== Card ===== */
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 24px rgba(160, 103, 90, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #5D2A1E;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title i { color: #E8756E; }
+
+    /* ===== Product Grid ===== */
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .product-item {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+    }
+    .product-item:active { transform: scale(0.96); }
+    .product-item.selected {
+      border-color: #E8756E;
+      background: #FFF5F0;
+      box-shadow: 0 0 0 3px rgba(232, 117, 110, 0.15);
+    }
+    .product-item .emoji { font-size: 36px; margin-bottom: 6px; display: block; }
+    .product-item .name { font-size: 14px; font-weight: 600; color: #5D2A1E; }
+    .product-item .price {
+      font-size: 16px;
+      font-weight: 700;
+      color: #E8756E;
+      margin-top: 4px;
+    }
+    .product-item .price small { font-size: 12px; font-weight: 400; color: #A0675A; }
+    .product-item .badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #FFC857;
+      color: #5D2A1E;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* ===== Form ===== */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #5D2A1E;
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #E8D5CE;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fff;
+      transition: border 0.2s;
+      outline: none;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: #E8756E;
+      box-shadow: 0 0 0 3px rgba(232, 117, 110, 0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+
+    /* ===== Submit Button ===== */
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #E8756E, #D4605A);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 6px 20px rgba(232, 117, 110, 0.3);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:active { transform: scale(0.97); }
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ===== Lottery Section ===== */
+    #lotterySection {
+      display: none;
+      animation: fadeUp 0.6s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== Scratch Card ===== */
+    .scratch-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 300px;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    }
+    .scratch-prize-back {
+      width: 100%;
+      aspect-ratio: 5 / 3;
+      background: linear-gradient(135deg, #FFE8E0, #FFD8CC);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+    }
+    .scratch-prize-back .prize-emoji { font-size: 48px; }
+    .scratch-prize-back .prize-label {
+      font-size: 22px;
+      font-weight: 900;
+      color: #5D2A1E;
+      margin-top: 8px;
+    }
+    .scratch-prize-back .prize-sub {
+      font-size: 13px;
+      color: #A0675A;
+      margin-top: 4px;
+    }
+    .scratch-prize-back .prize-hint {
+      font-size: 12px;
+      color: #C99A8E;
+      margin-top: 8px;
+      border-top: 1px dashed #E8D5CE;
+      padding-top: 8px;
+    }
+    .scratch-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+      border-radius: 16px;
+    }
+
+    .scratch-tip {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 12px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity 0.3s;
+    }
+    .scratch-tip.hidden { opacity: 0; }
+
+    /* ===== Prize Reveal Effect ===== */
+    .prize-reveal {
+      text-align: center;
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 14px;
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .prize-reveal .big { font-size: 20px; font-weight: 700; }
+    .prize-reveal .sub { font-size: 13px; margin-top: 4px; }
+    .btn-claim {
+      margin-top: 12px;
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #FFC857, #FFB830);
+      color: #5D2A1E;
+      border: none;
+      border-radius: 40px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 16px rgba(255, 200, 87, 0.4);
+      transition: transform 0.2s;
+    }
+    .btn-claim:active { transform: scale(0.95); }
+
+    /* ===== Confetti Canvas ===== */
+    #confettiCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ===== Steps Indicator ===== */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin: 16px 0 10px;
+      position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 25%;
+      right: 25%;
+      height: 2px;
+      background: #E8D5CE;
+      z-index: 0;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      z-index: 1;
+    }
+    .step-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #E8D5CE;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.4s;
+    }
+    .step-circle.active { background: #E8756E; box-shadow: 0 0 0 4px rgba(232, 117, 110, 0.2); }
+    .step-circle.done { background: #5D2A1E; }
+    .step-label {
+      font-size: 11px;
+      color: #A0675A;
+      font-weight: 500;
+    }
+    .step-label.active { color: #E8756E; font-weight: 700; }
+    .step-label.done { color: #5D2A1E; }
+
+    /* ===== Footer ===== */
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      color: #C99A8E;
+      font-size: 12px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(0,0,0,0.78);
+      color: #fff;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      text-align: center;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <div class="page">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="icon">🎂</div>
+      <h1>甜蜜转盘</h1>
+      <p>下单即抽奖 · 好运带回家</p>
+    </div>
+
+    <!-- Tagline -->
+    <div class="tagline">
+      <i class="fa-solid fa-gift"></i>
+      <div class="text">
+        <strong>🎉 下单即可抽奖</strong>
+        <span>新客首单、老客复购，人人有奖！</span>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-circle active" id="step1Circle">1</div>
+        <span class="step-label active" id="step1Label">选蛋糕</span>
+      </div>
+      <div class="step-item">
+        <div class="step-circle" id="step2Circle">2</div>
+        <span class="step-label" id="step2Label">填信息</span>
+      </div>
+      <div class="step-item">
+        <div class="step-circle" id="step3Circle">3</div>
+        <span class="step-label" id="step3Label">刮奖</span>
+      </div>
+    </div>
+
+    <!-- Order Section -->
+    <div class="card" id="orderSection">
+      <div class="card-title"><i class="fa-solid fa-cake-candles"></i> 选择蛋糕</div>
+
+      <!-- Product -->
+      <div class="product-grid" id="productGrid">
+        <div class="product-item" data-product="经典奶油蛋糕" data-price="88">
+          <span class="emoji">🍰</span>
+          <div class="name">经典奶油蛋糕</div>
+          <div class="price">¥88 <small>起</small></div>
+        </div>
+        <div class="product-item" data-product="草莓千层" data-price="128">
+          <span class="badge">热销</span>
+          <span class="emoji">🍓</span>
+          <div class="name">草莓千层</div>
+          <div class="price">¥128 <small>起</small></div>
+        </div>
+        <div class="product-item" data-product="巧克力熔岩" data-price="108">
+          <span class="emoji">🍫</span>
+          <div class="name">巧克力熔岩</div>
+          <div class="price">¥108 <small>起</small></div>
+        </div>
+        <div class="product-item" data-product="芒果慕斯" data-price="98">
+          <span class="emoji">🥭</span>
+          <div class="name">芒果慕斯</div>
+          <div class="price">¥98 <small>起</small></div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div style="margin-top: 18px;">
+        <div class="form-group">
+          <label><i class="fa-regular fa-user"></i> 联系人</label>
+          <input type="text" id="nameInput" placeholder="怎么称呼您？">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="fa-regular fa-mobile"></i> 手机号</label>
+            <input type="tel" id="phoneInput" placeholder="手机号" maxlength="11">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-regular fa-calendar"></i> 配送日期</label>
+            <input type="date" id="dateInput">
+          </div>
+        </div>
+        <div class="form-group">
+          <label><i class="fa-regular fa-note-sticky"></i> 备注（选填）</label>
+          <textarea id="noteInput" placeholder="口味偏好、配送时间…"></textarea>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" disabled>
+        <i class="fa-regular fa-paper-plane"></i> 提交订单 · 去抽奖
+      </button>
+      <p style="text-align:center; font-size:12px; color:#C99A8E; margin-top:8px;">
+        <i class="fa-regular fa-clock"></i> 提交后即参与抽奖，奖品自动发放
+      </p>
+    </div>
+
+    <!-- Lottery Section -->
+    <div class="card" id="lotterySection">
+      <div class="card-title">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> 恭喜下单！
+        <span style="font-size:13px; font-weight:400; color:#A0675A; margin-left:auto;">刮开看看</span>
+      </div>
+
+      <!-- Scratch Card -->
+      <div class="scratch-wrapper" id="scratchWrapper">
+        <div class="scratch-prize-back" id="prizeBack">
+          <div class="prize-emoji" id="prizeEmoji">🎉</div>
+          <div class="prize-label" id="prizeLabel">好运奖</div>
+          <div class="prize-sub" id="prizeSub">下次购买享9折</div>
+          <div class="prize-hint">🎯 第 <span id="orderNum">--</span> 位甜蜜体验官</div>
+        </div>
+        <canvas class="scratch-canvas" id="scratchCanvas"></canvas>
+        <div class="scratch-tip" id="scratchTip"><i class="fa-regular fa-hand"></i> 手指刮开领奖</div>
+      </div>
+
+      <div id="resultArea"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      本活动最终解释权归品牌所有 · 每单限抽1次
+    </div>
+  </div>
+
+  <script>
+    // ========== DATA ==========
+    const prizes = [
+      { name: '免单大奖',   emoji: '🏆', sub: '订单全额返还！',   weight: 2 },
+      { name: '半价特权',   emoji: '🔥', sub: '订单立减50%',     weight: 8 },
+      { name: '买一送一',   emoji: '🎁', sub: '同款蛋糕免费再送', weight: 15 },
+      { name: '甜蜜红包',   emoji: '🧧', sub: '¥30 无门槛券',    weight: 25 },
+      { name: '好运奖',     emoji: '🍀', sub: '下次购买享9折',   weight: 30 },
+      { name: '谢谢参与',   emoji: '💪', sub: '再接再厉，下次更好', weight: 20 },
+    ];
+
+    function weightedPick() {
+      const total = prizes.reduce((s, p) => s + p.weight, 0);
+      let r = Math.random() * total;
+      for (const p of prizes) {
+        r -= p.weight;
+        if (r <= 0) return p;
+      }
+      return prizes[prizes.length - 1];
+    }
+
+    // ========== STATE ==========
+    let selectedProduct = null;
+    let selectedPrice = 0;
+    let orderCount = 0;
+    let hasRevealed = false;
+
+    // ========== DOM REFS ==========
+    const productItems = document.querySelectorAll('.product-item');
+    const nameInput = document.getElementById('nameInput');
+    const phoneInput = document.getElementById('phoneInput');
+    const dateInput = document.getElementById('dateInput');
+    const noteInput = document.getElementById('noteInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const orderSection = document.getElementById('orderSection');
+    const lotterySection = document.getElementById('lotterySection');
+    const scratchCanvas = document.getElementById('scratchCanvas');
+    const scratchWrapper = document.getElementById('scratchWrapper');
+    const scratchTip = document.getElementById('scratchTip');
+    const prizeEmoji = document.getElementById('prizeEmoji');
+    const prizeLabel = document.getElementById('prizeLabel');
+    const prizeSub = document.getElementById('prizeSub');
+    const orderNum = document.getElementById('orderNum');
+    const resultArea = document.getElementById('resultArea');
+    const toast = document.getElementById('toast');
+
+    // ========== TOAST ==========
+    let toastTimer;
+    function showToast(msg) {
+      clearTimeout(toastTimer);
+      toast.textContent = msg;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // ========== STEP UPDATE ==========
+    function setStep(step) {
+      for (let i = 1; i <= 3; i++) {
+        const circle = document.getElementById(`step${i}Circle`);
+        const label = document.getElementById(`step${i}Label`);
+        circle.classList.remove('active', 'done');
+        label.classList.remove('active', 'done');
+        if (i < step) { circle.classList.add('done'); label.classList.add('done'); }
+        else if (i === step) { circle.classList.add('active'); label.classList.add('active'); }
+      }
+    }
+
+    // ========== PRODUCT SELECT ==========
+    productItems.forEach(el => {
+      el.addEventListener('click', () => {
+        productItems.forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedProduct = el.dataset.product;
+        selectedPrice = parseInt(el.dataset.price);
+        checkFormValidity();
+      });
+    });
+
+    // ========== FORM VALIDATION ==========
+    function checkFormValidity() {
+      const valid = selectedProduct
+        && nameInput.value.trim()
+        && phoneInput.value.trim().length >= 11
+        && dateInput.value;
+      submitBtn.disabled = !valid;
+    }
+    [nameInput, phoneInput, dateInput].forEach(el => {
+      el.addEventListener('input', checkFormValidity);
+    });
+
+    // Phone number formatting
+    phoneInput.addEventListener('input', () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 11);
+      checkFormValidity();
+    });
+
+    // Set default date to tomorrow
+    {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      dateInput.value = d.toISOString().slice(0, 10);
+    }
+
+    // ========== SUBMIT ==========
+    submitBtn.addEventListener('click', () => {
+      if (submitBtn.disabled) return;
+      orderCount = Math.floor(Math.random() * 300 + 58);
+      // Simulate order & show lottery
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...';
+      setTimeout(() => {
+        submitBtn.style.display = 'none';
+        orderSection.style.display = 'none';
+        setStep(3);
+        lotterySection.style.display = 'block';
+        initLottery();
+        initConfetti();
+      }, 1200);
+    });
+
+    // ========== LOTTERY (Scratch Card) ==========
+    function initLottery() {
+      const prize = weightedPick();
+      prizeEmoji.textContent = prize.emoji;
+      prizeLabel.textContent = prize.name;
+      prizeSub.textContent = prize.sub;
+      orderNum.textContent = orderCount;
+
+      // Reset
+      hasRevealed = false;
+      scratchTip.classList.remove('hidden');
+      resultArea.innerHTML = '';
+      lotterySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Init canvas
+      const rect = scratchWrapper.getBoundingClientRect();
+      const w = scratchWrapper.offsetWidth;
+      const h = scratchWrapper.offsetHeight;
+      scratchCanvas.width = w;
+      scratchCanvas.height = h;
+      scratchCanvas.style.width = w + 'px';
+      scratchCanvas.style.height = h + 'px';
+
+      const ctx = scratchCanvas.getContext('2d');
+      ctx.fillStyle = '#E8756E';
+      ctx.beginPath();
+      const r = Math.min(w, h) / 2 - 4;
+      ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Text on scratch cover
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${Math.min(w * 0.08, 28)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎂', w / 2, h / 2 - 20);
+      ctx.font = `${Math.min(w * 0.045, 16)}px sans-serif`;
+      ctx.fillText('刮开有奖', w / 2, h / 2 + 24);
+
+      // Drawing state
+      let isDrawing = false;
+
+      function getPos(e) {
+        const rect2 = scratchCanvas.getBoundingClientRect();
+        const touch = e.touches ? e.touches[0] : e;
+        return {
+          x: (touch.clientX - rect2.left) * (scratchCanvas.width / rect2.width),
+          y: (touch.clientY - rect2.top) * (scratchCanvas.height / rect2.height),
+        };
+      }
+
+      function scratch(x, y) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 24, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        checkReveal(ctx);
+      }
+
+      function onStart(e) {
+        e.preventDefault();
+        isDrawing = true;
+        const p = getPos(e);
+        scratch(p.x, p.y);
+      }
+      function onMove(e) {
+        e.preventDefault();
+        if (!isDrawing) return;
+        const p = getPos(e);
+        scratch(p.x, p.y);
+      }
+      function onEnd() { isDrawing = false; }
+
+      scratchCanvas.addEventListener('mousedown', onStart);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onEnd);
+      scratchCanvas.addEventListener('touchstart', onStart, { passive: false });
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', onEnd);
+
+      // Store cleanup
+      scratchCanvas._cleanup = () => {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onEnd);
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend', onEnd);
+      };
+    }
+
+    function checkReveal(ctx) {
+      const imageData = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+      const pixels = imageData.data;
+      let transparent = 0;
+      const total = pixels.length / 4;
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] === 0) transparent++;
+      }
+      const ratio = transparent / total;
+      if (ratio > 0.5 && !hasRevealed) {
+        hasRevealed = true;
+        scratchTip.classList.add('hidden');
+        // Auto reveal remaining
+        ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+        // Cleanup listeners
+        if (scratchCanvas._cleanup) scratchCanvas._cleanup();
+        // Expand scratchCanvas sizes to fully cover area
+        setTimeout(showResult, 400);
+      }
+    }
+
+    function showResult() {
+      const prizeName = prizeLabel.textContent;
+      const isWin = prizeName !== '谢谢参与';
+      const isBig = prizeName === '免单大奖' || prizeName === '半价特权';
+
+      let bg = '#FFF5F0';
+      if (isBig) bg = 'linear-gradient(135deg, #FFF0E0, #FFE0C0)';
+
+      resultArea.innerHTML = `
+        <div class="prize-reveal" style="background:${bg};">
+          <div style="font-size:36px;">${prizeEmoji.textContent}</div>
+          <div class="big">${isWin ? '🎊 恭喜中奖！' : '💪 再接再厉'}</div>
+          <div class="big" style="color:#E8756E; margin-top:4px;">${prizeName}</div>
+          <div class="sub">${prizeSub.textContent}</div>
+          ${isWin ? `<button class="btn-claim" onclick="claimPrize()"><i class="fa-regular fa-circle-check"></i> 领取奖品</button>` : ''}
+        </div>
+      `;
+      if (isBig) bigConfetti();
+    }
+
+    // ========== CLAIM ==========
+    function claimPrize() {
+      showToast('🎉 奖品已发放到您的账户，联系客服可查询详情！');
+    }
+
+    // ========== CONFETTI ==========
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx2 = canvas.getContext('2d');
+    let confettiPieces = [];
+    let confettiAnim = null;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function initConfetti() {
+      confettiPieces = [];
+      for (let i = 0; i < 80; i++) {
+        confettiPieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          w: Math.random() * 10 + 4,
+          h: Math.random() * 6 + 2,
+          color: ['#E8756E', '#FFC857', '#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF'][Math.floor(Math.random() * 6)],
+          vx: (Math.random() - 0.5) * 2,
+          vy: Math.random() * 2 + 1,
+          rot: Math.random() * 360,
+          rv: (Math.random() - 0.5) * 6,
+        });
+      }
+      if (confettiAnim) cancelAnimationFrame(confettiAnim);
+      animateConfetti();
+    }
+
+    function animateConfetti() {
+      ctx2.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      for (const p of confettiPieces) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.rv;
+        p.vy += 0.03;
+        ctx2.save();
+        ctx2.translate(p.x, p.y);
+        ctx2.rotate((p.rot * Math.PI) / 180);
+        ctx2.fillStyle = p.color;
+        ctx2.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx2.restore();
+        if (p.y < canvas.height + 20) alive = true;
+      }
+      if (alive) {
+        confettiAnim = requestAnimationFrame(animateConfetti);
+      } else {
+        confettiPieces = [];
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function bigConfetti() {
+      confettiPieces = [];
+      for (let i = 0; i < 200; i++) {
+        confettiPieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          w: Math.random() * 12 + 4,
+          h: Math.random() * 8 + 2,
+          color: ['#E8756E', '#FFC857', '#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#FF69B4', '#FFD700'][Math.floor(Math.random() * 8)],
+          vx: (Math.random() - 0.5) * 3,
+          vy: Math.random() * 3 + 1.5,
+          rot: Math.random() * 360,
+          rv: (Math.random() - 0.5) * 8,
+        });
+      }
+      if (confettiAnim) cancelAnimationFrame(confettiAnim);
+      animateConfetti();
+    }
+  </script>
+</body>
+</html>
