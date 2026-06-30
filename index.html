@@ -428,30 +428,8 @@
     <div class="card" id="orderSection">
       <div class="card-title"><i class="fa-solid fa-cake-candles"></i> 选择蛋糕</div>
 
-      <!-- Product -->
-      <div class="product-grid" id="productGrid">
-        <div class="product-item" data-product="经典奶油蛋糕" data-price="88">
-          <span class="emoji">🍰</span>
-          <div class="name">经典奶油蛋糕</div>
-          <div class="price">¥88 <small>起</small></div>
-        </div>
-        <div class="product-item" data-product="草莓千层" data-price="128">
-          <span class="badge">热销</span>
-          <span class="emoji">🍓</span>
-          <div class="name">草莓千层</div>
-          <div class="price">¥128 <small>起</small></div>
-        </div>
-        <div class="product-item" data-product="巧克力熔岩" data-price="108">
-          <span class="emoji">🍫</span>
-          <div class="name">巧克力熔岩</div>
-          <div class="price">¥108 <small>起</small></div>
-        </div>
-        <div class="product-item" data-product="芒果慕斯" data-price="98">
-          <span class="emoji">🥭</span>
-          <div class="name">芒果慕斯</div>
-          <div class="price">¥98 <small>起</small></div>
-        </div>
-      </div>
+      <!-- Product (由JS动态渲染) -->
+      <div class="product-grid" id="productGrid"></div>
 
       <!-- Form -->
       <div style="margin-top: 18px;">
@@ -512,16 +490,85 @@
   </div>
 
   <script>
-    // ========== DATA ==========
+    /* =================================================================
+     * 🎯 配置区 - 在这里自定义你的商品和平台
+     * =================================================================
+     * 使用方法:
+     *   1. 直接修改下方 CONFIG 对象
+     *   2. 或通过 URL 参数: ?app=抖音&sku=商品A,商品B,商品C
+     *      商品格式: 名称|价格|emoji|角标   (价格和emoji可选)
+     *      示例: ?app=抖音&sku=奶茶|18|🧋,汉堡|25|🍔|热销,薯条
+     * ================================================================= */
+    const CONFIG = {
+      // 平台名称
+      appName: '甜蜜蛋糕',
+      // 商品列表
+      products: [
+        { name: '经典奶油蛋糕', price: 88,  emoji: '🍰', badge: '' },
+        { name: '草莓千层',     price: 128, emoji: '🍓', badge: '热销' },
+        { name: '巧克力熔岩',   price: 108, emoji: '🍫', badge: '' },
+        { name: '芒果慕斯',     price: 98,  emoji: '🥭', badge: '' },
+      ],
+      // 页面文案
+      pageTitle: '甜蜜转盘',
+      pageSubtitle: '下单即抽奖 · 好运带回家',
+      taglineTitle: '🎉 下单即可抽奖',
+      taglineText: '新客首单、老客复购，人人有奖！',
+    };
+
+    // ========== URL 参数覆盖 ==========
+    (function applyURLConfig() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('app')) CONFIG.appName = decodeURIComponent(params.get('app'));
+      if (params.has('title')) CONFIG.pageTitle = decodeURIComponent(params.get('title'));
+      if (params.has('sku')) {
+        const raw = decodeURIComponent(params.get('sku'));
+        CONFIG.products = raw.split(',').map(s => {
+          const parts = s.split('|');
+          return {
+            name: parts[0].trim(),
+            price: parts[1] ? parseInt(parts[1]) : 0,
+            emoji: parts[2] ? parts[2].trim() : '📦',
+            badge: parts[3] ? parts[3].trim() : '',
+          };
+        });
+      }
+    })();
+
+    // ========== 应用配置到页面 ==========
+    document.querySelector('.header h1').textContent = CONFIG.pageTitle;
+    document.querySelector('.header p').textContent = CONFIG.pageSubtitle;
+    document.querySelector('.tagline .text strong').textContent = CONFIG.taglineTitle;
+    document.querySelector('.tagline .text span').textContent = CONFIG.taglineText;
+    document.querySelector('.card-title').innerHTML = `<i class="fa-solid fa-cake-candles"></i> 选择${CONFIG.appName}商品`;
+    document.querySelector('.step-label[for="1"]').textContent = `选${CONFIG.appName}`;
+    // 更新步骤标签 (直接通过innerText找)
+    const stepLabels = document.querySelectorAll('.step-label');
+    if (stepLabels.length >= 1) stepLabels[0].textContent = `选${CONFIG.appName}`;
+
+    // ========== 动态渲染商品列表 ==========
+    function renderProducts() {
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = CONFIG.products.map(p => `
+        <div class="product-item" data-product="${p.name}" data-price="${p.price}">
+          ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
+          <span class="emoji">${p.emoji}</span>
+          <div class="name">${p.name}</div>
+          <div class="price">¥${p.price} <small>起</small></div>
+        </div>
+      `).join('');
+    }
+    renderProducts();
+
+    // ========== 奖品数据 ==========
     const prizes = [
       { name: '免单大奖',   emoji: '🏆', sub: '订单全额返还！',   weight: 2 },
       { name: '半价特权',   emoji: '🔥', sub: '订单立减50%',     weight: 8 },
-      { name: '买一送一',   emoji: '🎁', sub: '同款蛋糕免费再送', weight: 15 },
+      { name: '买一送一',   emoji: '🎁', sub: '同款商品免费再送', weight: 15 },
       { name: '甜蜜红包',   emoji: '🧧', sub: '¥30 无门槛券',    weight: 25 },
       { name: '好运奖',     emoji: '🍀', sub: '下次购买享9折',   weight: 30 },
       { name: '谢谢参与',   emoji: '💪', sub: '再接再厉，下次更好', weight: 20 },
     ];
-
     function weightedPick() {
       const total = prizes.reduce((s, p) => s + p.weight, 0);
       let r = Math.random() * total;
@@ -539,7 +586,7 @@
     let hasRevealed = false;
 
     // ========== DOM REFS ==========
-    const productItems = document.querySelectorAll('.product-item');
+    const productGrid = document.getElementById('productGrid');
     const nameInput = document.getElementById('nameInput');
     const phoneInput = document.getElementById('phoneInput');
     const dateInput = document.getElementById('dateInput');
@@ -578,15 +625,15 @@
       }
     }
 
-    // ========== PRODUCT SELECT ==========
-    productItems.forEach(el => {
-      el.addEventListener('click', () => {
-        productItems.forEach(x => x.classList.remove('selected'));
-        el.classList.add('selected');
-        selectedProduct = el.dataset.product;
-        selectedPrice = parseInt(el.dataset.price);
-        checkFormValidity();
-      });
+    // ========== PRODUCT SELECT (事件委托) ==========
+    document.getElementById('productGrid').addEventListener('click', (e) => {
+      const item = e.target.closest('.product-item');
+      if (!item) return;
+      document.querySelectorAll('.product-item').forEach(x => x.classList.remove('selected'));
+      item.classList.add('selected');
+      selectedProduct = item.dataset.product;
+      selectedPrice = parseInt(item.dataset.price);
+      checkFormValidity();
     });
 
     // ========== FORM VALIDATION ==========
